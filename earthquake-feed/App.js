@@ -1,18 +1,37 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, Text, View, SafeAreaView, Button } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, SafeAreaView, Button, TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 function HomeScreen({navigation}) {
+
+  let regional_earthquake = true;
+
   return (
-    <View style={styles.header}>
-      <Text>Earthquake Live Feed</Text>
-      <Button
-        title="View Recent Earthquakes"
-        onPress={() => navigation.navigate('Details')}
-      />
-    </View>
+    <ScrollView>
+      {regional_earthquake?<View style={styles.warningCard}>
+        <Text style={styles.warningHeader}>Warning!</Text>
+        <Text style={styles.warningText}>Earthquake was detected in your region today!</Text>
+        {/* <Button
+          color="white"
+          title='Details'
+        ></Button> */}
+        <TouchableOpacity style={styles.warningButton}>
+          <Text>View</Text>
+        </TouchableOpacity>
+      </View>:<View>
+          <Text>You are safe!</Text>
+          <Text>No earthquake event occured within your region today!</Text>
+        </View>}
+      <View style={styles.card}>
+        <Text>Recent Massive Global Earthquakes</Text>
+        <Button
+          title="View"
+          onPress={() => navigation.navigate('Details')}
+        />
+      </View>
+    </ScrollView>
   );
 }
 
@@ -47,7 +66,7 @@ export default function App() {
   return (
     <NavigationContainer>{
       <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Home' }} />
+        <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Earthquake Live Feed' }} />
         <Stack.Screen name="Details" component={DetailsScreen} options={{title: 'Recent Earthquakes'}}/>
       </Stack.Navigator>
     }
@@ -86,4 +105,43 @@ const styles = StyleSheet.create({
   time: {
     fontSize: 14,
   },
+  card:{
+    flexDirection:'row',
+    backgroundColor:"white",
+    alignItems:'center',
+    justifyContent:'space-around',
+    paddingTop:20,
+    paddingBottom:20,
+    margin:10,
+    borderRadius:10
+  },
+  warningCard:{
+    alignItems:'center',
+    backgroundColor:'crimson',
+    margin:10,
+    paddingTop:20,
+    paddingBottom:20,
+    paddingLeft:10,
+    paddingRight:10,
+    borderRadius:10
+  },
+  warningHeader:{
+    fontSize:30,
+    textAlign:'center'
+  },
+  warningText:{
+    textAlign:'center',
+    fontSize:15,
+    marginTop:5,
+    marginBottom:5
+  },
+  warningButton:{
+    backgroundColor:'white',
+    paddingLeft:10,
+    paddingRight:10,
+    paddingTop:5,
+    paddingBottom:5,
+    marginTop:10,
+    borderRadius:5
+  }
 });
