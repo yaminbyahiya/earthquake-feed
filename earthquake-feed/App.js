@@ -6,7 +6,37 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 function HomeScreen({navigation}) {
 
-  let regional_earthquake = true;
+  let today = new Date();
+
+  let current_date = today.toISOString().split('T')[0];
+
+  console.log(current_date);
+
+  let regional_earthquake = false;
+
+  const [data, setData] = useState(null);
+
+  useEffect(()=>{
+    const apiUrl = `https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=${current_date}&endtime&minlatitude=20.74&maxlatitude=26.72&minlongitude=88.02&maxlongitude=92.68&orderby=time`;
+    const fetchData = async () => {
+      try {
+        const response = await fetch(apiUrl);
+        const jsonData = await response.json();
+        setData(jsonData);
+      } catch (error) {
+        console.error('Error: ', error);
+      }
+    }
+  
+    fetchData();
+  }, []);
+
+  if (data && data.features && data.features.length !== 0) {
+    regional_earthquake = true;
+  }
+
+
+  
 
   return (
     <ScrollView>
@@ -18,7 +48,7 @@ function HomeScreen({navigation}) {
           title='Details'
         ></Button> */}
         <TouchableOpacity style={styles.warningButton}>
-          <Text>View</Text>
+          <Text>Details</Text>
         </TouchableOpacity>
       </View>:<View>
           <Text>You are safe!</Text>
