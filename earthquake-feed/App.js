@@ -3,18 +3,20 @@ import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View, SafeAreaView, Button, TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import Geolocation from '@react-native-community/geolocation';
+import * as Location from 'expo-location';
 
 function HomeScreen({navigation}) {
   let lat;
   let lng;
   const [location, setLocation] = useState("null");
-  Geolocation.getCurrentPosition(info => setLocation(info));
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  // Geolocation.getCurrentPosition(info => setLocation(info));
   if(location && location.coords && location.coords.latitude){
     lat = location.coords.latitude;
     lng = location.coords.longitude;
-    // console.log(lat);
-    // console.log(lng);
+    console.log(lat);
+    console.log(lng);
   }
 
   let today = new Date();
@@ -30,7 +32,20 @@ function HomeScreen({navigation}) {
   const[country, setCountry] = useState(null);
 
   useEffect(()=>{
-    const openCageUrl = `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=fc72fce9eb37493dae32cff49e3d6b48`;
+
+    (async () => {
+      
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setErrorMsg('Permission to access location was denied');
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setLocation(location);
+    })();
+
+        const openCageUrl = `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=fc72fce9eb37493dae32cff49e3d6b48`;
     const fetchLocation = async () => {
       try {
         const locationResponse = await fetch(openCageUrl);
@@ -58,6 +73,13 @@ function HomeScreen({navigation}) {
   
     fetchData();
   }, [lat]);
+
+  let text = 'Waiting..';
+  if (errorMsg) {
+    text = errorMsg;
+  } else if (location) {
+    text = JSON.stringify(location);
+  }
 
   if (data && data.features && data.features.length !== 0) {
     regional_earthquake = true;
@@ -123,7 +145,6 @@ function DetailsScreen() {
 }
 
 const Stack = createNativeStackNavigator();
-
 export default function App() {
 
   return (
