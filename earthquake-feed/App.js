@@ -1,15 +1,64 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, Text, View, SafeAreaView, Button, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, SafeAreaView, Button, TouchableOpacity, FlatList, Linking } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
+import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
+
+function EarthquakeNews({navigation}){
+  const [articles, setArticles] = useState([]);
+  useEffect(()=>{
+    const fetchNews = async () => {
+      try {
+        const apiKey = '47d3d84485ed4acd93e5682c77f7166c';
+        const response = await fetch(
+          `https://newsapi.org/v2/everything?q=earthquake&apiKey=${apiKey}`
+        );
+        const data = await response.json();
+        setArticles(data.articles);
+      } catch (error) {
+        console.error('Error fetching earthquake news:', error);
+      }
+    };
+
+    fetchNews();
+  }, []);
+
+
+  const openArticleLink = (url) => {
+    Linking.openURL(url);
+  };
+
+
+  const renderItem = ({ item }) => (
+    <TouchableOpacity onPress={() => openArticleLink(item.url)}>
+      <View style={{ padding: 16 }}>
+        <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{item.title}</Text>
+        <Text>{item.description}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+    return(
+      <View style={styles.newsCard}>
+          <FlatList
+            data={articles}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.url}
+          />
+      </View>
+    );
+
+}
 
 function HomeScreen({navigation}) {
   let lat;
   let lng;
   const [location, setLocation] = useState("null");
   const [errorMsg, setErrorMsg] = useState(null);
+  
 
   // Geolocation.getCurrentPosition(info => setLocation(info));
   if(location && location.coords && location.coords.latitude){
@@ -22,6 +71,8 @@ function HomeScreen({navigation}) {
   let today = new Date();
 
   let current_date = today.toISOString().split('T')[0];
+
+  // let current_date = '2023-09-17';
 
   // console.log(current_date);
 
@@ -74,6 +125,7 @@ function HomeScreen({navigation}) {
     fetchData();
   }, [lat]);
 
+
   let text = 'Waiting..';
   if (errorMsg) {
     text = errorMsg;
@@ -85,16 +137,14 @@ function HomeScreen({navigation}) {
     regional_earthquake = true;
   }
 
-
-  
-
   return (
     <ScrollView>
       <View style={styles.locationCard}>
-        <Text>Your Current Location</Text>
+        <Text style={styles.locationHeader}>Your Current Location <Ionicons name="location" size={20} color="black" /></Text>
         <Text>{country}</Text>
       </View>
       {regional_earthquake?<View style={styles.warningCard}>
+        <Feather name="alert-triangle" size={50} color="red" />
         <Text style={styles.warningHeader}>Warning!</Text>
         <Text style={styles.warningText}>Earthquake was detected in your region today!</Text>
         {/* <Button
@@ -102,18 +152,38 @@ function HomeScreen({navigation}) {
           title='Details'
         ></Button> */}
         <TouchableOpacity style={styles.warningButton}>
-          <Text>Details</Text>
+          <Text style={styles.warningButtonText}>Details</Text>
         </TouchableOpacity>
       </View>:<View style={styles.safeCard}>
+          <Ionicons name="md-checkmark-circle" size={50} color="green" />
           <Text style={styles.warningHeader}>You are safe!</Text>
           <Text style={styles.warningText}>No earthquake event occured within your region today!</Text>
         </View>}
       <View style={styles.card}>
         <Text>Recent Massive Global Earthquakes</Text>
-        <Button
+        <TouchableOpacity 
+          style={styles.viewButton}
+          onPress={() => navigation.navigate('Details')}
+        >
+          <Text style={styles.warningButtonText}>View</Text>
+        </TouchableOpacity>
+        {/* <Button
           title="View"
           onPress={() => navigation.navigate('Details')}
-        />
+        /> */}
+      </View>
+      <View style={styles.card}>
+        <Text>Latest News on Global Earthquakes</Text>
+        <TouchableOpacity 
+          style={styles.viewButton}
+          onPress={() => navigation.navigate('News')}
+        >
+          <Text style={styles.warningButtonText}>View</Text>
+        </TouchableOpacity>
+        {/* <Button
+          title="View"
+          onPress={() => navigation.navigate('Details')}
+        /> */}
       </View>
     </ScrollView>
   );
@@ -121,8 +191,11 @@ function HomeScreen({navigation}) {
 
 function DetailsScreen() {
 
-  let start_time = '2023-09-01';
-  let end_time = '2023-09-27';
+  let today = new Date();
+  let end_time = today.toISOString().split('T')[0];
+  let thirtyDaysAgo = new Date(today);
+  thirtyDaysAgo.setDate(today.getDate() - 30);
+  let start_time = thirtyDaysAgo.toISOString().split('T')[0]; 
 
   const [data, setData] = useState(null);
 
@@ -152,6 +225,7 @@ export default function App() {
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Earthquake Live Feed' }} />
         <Stack.Screen name="Details" component={DetailsScreen} options={{title: 'Recent Earthquakes'}}/>
+        <Stack.Screen name="News" component={EarthquakeNews} options={{title: 'Latest Earthquake News'}}/>
       </Stack.Navigator>
     }
     </NavigationContainer>
@@ -201,7 +275,7 @@ const styles = StyleSheet.create({
   },
   warningCard:{
     alignItems:'center',
-    backgroundColor:'crimson',
+    backgroundColor:'white',
     margin:10,
     paddingTop:20,
     paddingBottom:20,
@@ -211,7 +285,7 @@ const styles = StyleSheet.create({
   },
   safeCard:{
     alignItems:'center',
-    backgroundColor:'greenyellow',
+    backgroundColor:'white',
     margin:10,
     paddingTop:20,
     paddingBottom:20,
@@ -230,18 +304,45 @@ const styles = StyleSheet.create({
     marginBottom:5
   },
   warningButton:{
-    backgroundColor:'white',
+    backgroundColor:'black',
     paddingLeft:10,
     paddingRight:10,
-    paddingTop:5,
-    paddingBottom:5,
+    paddingTop:10,
+    paddingBottom:10,
     marginTop:10,
-    borderRadius:5
+    borderRadius:5,
+  },
+  warningButtonText:{
+    color:'white'
+  },
+  viewButton:{
+    backgroundColor:'black',
+    paddingLeft:10,
+    paddingRight:10,
+    paddingTop:10,
+    paddingBottom:10,
+    borderRadius:5,
   },
   locationCard:{
     backgroundColor:'white',
     padding:10,
     margin:10,
     borderRadius:5
-  }
+  },
+  locationHeader:{
+    fontSize:20
+  },
+  newsCard:{
+    alignItems:'center',
+    backgroundColor:'white',
+    margin:10,
+    paddingTop:20,
+    paddingBottom:20,
+    paddingLeft:10,
+    paddingRight:10,
+    borderRadius:10
+  },
+  newsHeader:{
+    fontSize:20
+  },
 });
