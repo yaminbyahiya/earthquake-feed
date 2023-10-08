@@ -33,7 +33,9 @@ function EarthquakeNews({navigation}){
 
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => openArticleLink(item.url)}>
+    <TouchableOpacity 
+      style={styles.newsList}
+      onPress={() => openArticleLink(item.url)}>
       <View style={{ padding: 16 }}>
         <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{item.title}</Text>
         <Text>{item.description}</Text>
@@ -42,7 +44,7 @@ function EarthquakeNews({navigation}){
   );
 
     return(
-      <View style={styles.newsCard}>
+      <View>
           <FlatList
             data={articles}
             renderItem={renderItem}
@@ -172,13 +174,13 @@ function HomeScreen({navigation}) {
           onPress={() => navigation.navigate('Details')}
         /> */}
       </View>
-      <View style={styles.card}>
-        <Text>Latest News on Global Earthquakes</Text>
+      <View style={styles.newsCard}>
+        <Text style={styles.newsText}>Stay upto date with latest worldwide news on earthquakes</Text>
         <TouchableOpacity 
           style={styles.viewButton}
           onPress={() => navigation.navigate('News')}
         >
-          <Text style={styles.warningButtonText}>View</Text>
+          <Text style={styles.warningButtonText}>Check News</Text>
         </TouchableOpacity>
         {/* <Button
           title="View"
@@ -345,4 +347,18 @@ const styles = StyleSheet.create({
   newsHeader:{
     fontSize:20
   },
+  newsText:{
+    textAlign:'center',
+    marginBottom:10
+  },
+  newsList:{
+    alignItems:'start',
+    backgroundColor:'white',
+    margin:10,
+    paddingTop:10,
+    paddingBottom:10,
+    paddingLeft:10,
+    paddingRight:10,
+    borderRadius:10
+  }
 });
