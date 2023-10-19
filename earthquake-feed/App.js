@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, Text, View, SafeAreaView, Button, TouchableOpacity, FlatList, Linking } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, SafeAreaView, Button, TouchableOpacity, FlatList, Linking, Alert, Modal, Pressable} from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
@@ -60,6 +60,8 @@ function HomeScreen({navigation}) {
   let lng;
   const [location, setLocation] = useState("null");
   const [errorMsg, setErrorMsg] = useState(null);
+  const [modalVisible, setModalVisible]  = useState(false);
+
   
 
   // Geolocation.getCurrentPosition(info => setLocation(info));
@@ -72,9 +74,9 @@ function HomeScreen({navigation}) {
 
   let today = new Date();
 
-  let current_date = today.toISOString().split('T')[0];
+  // let current_date = today.toISOString().split('T')[0];
 
-  // let current_date = '2023-09-17';
+  let current_date = '2023-09-17';
 
   // console.log(current_date);
 
@@ -137,6 +139,7 @@ function HomeScreen({navigation}) {
 
   if (data && data.features && data.features.length !== 0) {
     regional_earthquake = true;
+    console.log(data.features);
   }
 
   return (
@@ -153,14 +156,52 @@ function HomeScreen({navigation}) {
           color="white"
           title='Details'
         ></Button> */}
-        <TouchableOpacity style={styles.warningButton}>
+        {/* <TouchableOpacity style={styles.warningButton}>
           <Text style={styles.warningButtonText}>Details</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+        <Pressable
+          style={styles.warningButton}
+          onPress={() => setModalVisible(true)}>
+          <Text style={styles.warningButtonText}>Details</Text>
+      </Pressable>
       </View>:<View style={styles.safeCard}>
           <Ionicons name="md-checkmark-circle" size={50} color="green" />
           <Text style={styles.warningHeader}>You are safe!</Text>
           <Text style={styles.warningText}>No earthquake event occured within your region today!</Text>
         </View>}
+      <View style={styles.centeredView}>
+        <Modal
+          animationType='slide'
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={()=>{
+            Alert.alert("Modal has been closed");
+            setModalVisible(!modalVisible);
+          }}
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <ScrollView>
+                  {data && data.features && data.features.map((feature, index) => (
+                    <View key={index} style={styles.regionalEarthquakeCard}>
+                      <Text style={styles.magnitude}>Magnitude: {feature.properties.mag}</Text>
+                      <Text style={styles.place}>Place: {feature.properties.place}</Text>
+                      <Text style={styles.time}>Time: {new Date(feature.properties.time).toString()}</Text>
+                    </View>
+                  ))}
+              </ScrollView>
+                <Pressable 
+                style={styles.warningButton}
+                onPress={()=>{
+                  setModalVisible(!modalVisible);
+                }}
+              >
+                <Text style={styles.warningButtonText}>Close Details</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
+      </View>
       <View style={styles.card}>
         <Text>Recent Massive Global Earthquakes</Text>
         <TouchableOpacity 
@@ -247,6 +288,20 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems:'center',
     justifyContent:'flex-start'
+  },
+  regionalEarthquakeCard:{
+    backgroundColor: 'white',
+    padding: 10,
+    margin: 10,
+    borderRadius: 8,
+    elevation: 2,
+    // shadowColor:'black',
+    // shadowOffset:{
+    //   width:5,
+    //   height:5
+    // },
+    // shadowOpacity:3,
+    // shadowRadius:5
   },
   earthquakeCard: {
     backgroundColor: 'white',
@@ -360,5 +415,50 @@ const styles = StyleSheet.create({
     paddingLeft:10,
     paddingRight:10,
     borderRadius:10
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: '#F2F2F2',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonOpen: {
+    backgroundColor: '#F194FF',
+  },
+  buttonClose: {
+    backgroundColor: '#2196F3',
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
   }
 });
